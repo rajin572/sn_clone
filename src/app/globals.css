@@ -1,0 +1,141 @@
+@import "tailwindcss";
+@import "lenis/dist/lenis.css";
+
+@theme {
+  --color-primary-color: #ffffff;
+  --color-background-color: #e5e5e0;
+  --color-secondary-color: #0c3188;
+  --color-base-color: #0c0c0c;
+  --color-anchor: #0c3188;
+  --color-highlight: #efefef;
+  --color-input-color: #efefef;
+  --color-error: #e53935;
+  --color-success: #00c566;
+  --color-warning: #facc15;
+}
+
+/* @layer base {
+  body {
+    @apply font-normal bg-white;
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5 {
+    @apply leading-[0.85];
+  }
+  button {
+    @apply cursor-pointer;
+  }
+}
+
+@layer components {
+  .text-gradient-color {
+    @apply bg-linear-to-b from-[#30599D] to-[#0c3188] inline-block text-transparent bg-clip-text;
+  }
+  .bg-gradient-color {
+    @apply bg-linear-to-tl from-[#17223A] to-[#30599D];
+  }
+}
+
+@layer utilities {
+  .container {
+    @apply max-w-[100em] w-full mx-auto px-[5vw];
+  }
+  .hero-title {
+    @apply text-5xl sm:text-7xl lg:text-[109px] font-medium uppercase  leading-[0.85] overflow-hidden!;
+  }
+  .hero-text {
+    @apply overflow-hidden!;
+  }
+  .section {
+    @apply pt-28 lg:pt-40;
+  }
+  .section-title {
+    @apply font-medium uppercase text-4xl sm:text-5xl lg:text-7xl xl:text-9xl leading-[0.85];
+  }
+  .text-line {
+    @apply text-nowrap overflow-hidden!;
+  }
+  .card-title {
+    @apply font-medium text-2xl uppercase tracking-wide;
+  }
+
+  .outlined-text {
+    -webkit-text-stroke: 2px rgb(29, 28, 28);
+    color: white;
+  }
+  .footer-outlined-text {
+    -webkit-text-stroke: 2px white;
+    color: transparent;
+  }
+} */
+
+html,
+body {
+  background: var(--background);
+  color: var(--base-color);
+  font-family: var(--font-amiamie);
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+  /* -ms-overflow-style: none; */
+  scrollbar-width: none;
+}
+
+html::-webkit-scrollbar {
+  display: none;
+}
+/* #smooth-wrapper {
+  overflow: hidden;
+  position: fixed;
+  height: 100%;
+  width: 100%;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+#smooth-content {
+  overflow: visible;
+  width: 100%;
+}
+
+.smooth-fixed {
+  position: fixed;
+  z-index: 9999;
+}
+
+
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+} */
+@utility clip-path {
+  clip-path: polygon(0 100%, 100% 100%, 100% 100%, 0 100%);
+}
+@utility banner-text-responsive {
+  @apply text-[62px] sm:text-[90px] md:text-[114px] lg:text-[152px] leading-none;
+}
+@utility value-text-responsive {
+  @apply text-[18px] md:text-[20px] lg:text-[26px] xl:text-[32px];
+}
+@utility marquee-text-responsive {
+  @apply text-[28px] sm:text-[36px] lg:text-[42px];
+}
+@utility contact-text-responsive {
+  @apply text-[34px] sm:text-[52px] md:text-[62px] lg:text-[100px] leading-[1.15];
+}
