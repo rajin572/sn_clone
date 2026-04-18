@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
@@ -87,11 +87,15 @@ const Navbar = () => {
                 start: "top top",
                 end: "max",
                 onUpdate: (self) => {
-                    if (self.scroll() < 10) {
-                        setShowBurger(true);
+                    if (!isOpen && self.scroll() === 0 && self.direction === -1) {
+                        setTimeout(() => setShowBurger(false), 1000);
                         return;
                     }
-                    setShowBurger(self.direction === -1);
+                    if (!isOpen && self.direction === 1) {
+                        setTimeout(() => setShowBurger(false), 100);
+                    } else {
+                        setShowBurger(true);
+                    }
                 },
             });
         },
@@ -110,6 +114,25 @@ const Navbar = () => {
         }
         setIsOpen((prev) => !prev);
     };
+
+
+    useEffect(() => {
+        if (!isOpen) return;
+
+        const handlePointerDown = (event: PointerEvent) => {
+            const target = event.target as Node;
+            if (navRef.current?.contains(target)) return;
+            if (navWrapperRef.current?.contains(target)) return;
+
+            navTl.current?.reverse();
+            iconTl.current?.reverse();
+            setIsOpen(false);
+        };
+
+        document.addEventListener("pointerdown", handlePointerDown);
+        return () => document.removeEventListener("pointerdown", handlePointerDown);
+    }, [isOpen]);
+
 
     const clipPath = showBurger
         ? "circle(100% at 50% 50%)"
@@ -169,8 +192,7 @@ const Navbar = () => {
 
             <div
                 ref={navWrapperRef}
-                className="w-full fixed z-50 flex flex-row gap-5 justify-between px-4 md:px-10 pt-4"
-            >
+                className={`w-full fixed z-50 flex flex-row gap-5 justify-between px-4 md:px-10 pt-4 ${!showBurger && "pointer-events-none"} }`}            >
                 <div
                     className="h-10 md:h-14 transition-[clip-path] duration-500 ease-in-out"
                     style={{ clipPath }}
