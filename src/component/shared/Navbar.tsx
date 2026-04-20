@@ -25,7 +25,7 @@ const Navbar = () => {
     const iconTl = useRef<gsap.core.Timeline | null>(null);
 
     const [isOpen, setIsOpen] = useState(false);
-    const [showBurger, setShowBurger] = useState(true);
+    const [scrollHidden, setScrollHidden] = useState(false);
 
     useGSAP(
         () => {
@@ -87,15 +87,8 @@ const Navbar = () => {
                 start: "top top",
                 end: "max",
                 onUpdate: (self) => {
-                    if (!isOpen && self.scroll() === 0 && self.direction === -1) {
-                        setTimeout(() => setShowBurger(false), 1000);
-                        return;
-                    }
-                    if (!isOpen && self.direction === 1) {
-                        setTimeout(() => setShowBurger(false), 100);
-                    } else {
-                        setShowBurger(true);
-                    }
+                    if (self.scroll() < 10) { setScrollHidden(false); return; }
+                    setScrollHidden(self.direction === 1);
                 },
             });
         },
@@ -134,6 +127,7 @@ const Navbar = () => {
     }, [isOpen]);
 
 
+    const showBurger = isOpen || !scrollHidden;
     const clipPath = showBurger
         ? "circle(100% at 50% 50%)"
         : "circle(0% at 50% 50%)";
