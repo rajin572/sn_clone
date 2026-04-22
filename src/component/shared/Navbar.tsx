@@ -1,68 +1,69 @@
 "use client";
-
-import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
-import { useGSAP } from "@gsap/react";
+import { useRef, useState } from "react";
 import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 import ScrollTrigger from "gsap/ScrollTrigger";
-import { socials } from "../../../constants";
+import Image from "next/image";
+import Link from "next/link";
+import { SplitText } from "gsap/SplitText";
 
-gsap.registerPlugin(useGSAP, ScrollTrigger);
+gsap.registerPlugin(useGSAP, ScrollTrigger, SplitText);
 
-const NAV_SECTIONS = ["home", "services", "about", "work", "contact"] as const;
+const NAV_SECTIONS = ["home", "services", "about", "contact", "lab"] as const;
 
 const Navbar = () => {
     const containerRef = useRef<HTMLDivElement>(null);
-    const navRef = useRef<HTMLElement>(null);
-    const navWrapperRef = useRef<HTMLDivElement>(null);
-    const linksRef = useRef<(HTMLDivElement | null)[]>([]);
-    const contactRef = useRef<HTMLDivElement>(null);
+
+
+    const [showNavbar, setShowNavbar] = useState(true);
+    const [showMenu, setShowMenu] = useState(false);
+
+    const menuTl = useRef<gsap.core.Timeline | null>(null);
+    const iconTl = useRef<gsap.core.Timeline | null>(null);
     const topLineRef = useRef<HTMLSpanElement>(null);
     const bottomLineRef = useRef<HTMLSpanElement>(null);
+    const scrollTriggerRef = useRef<{ enable?: () => void; disable?: () => void; kill?: () => void } | null>(null);
 
-    const navTl = useRef<gsap.core.Timeline | null>(null);
-    const iconTl = useRef<gsap.core.Timeline | null>(null);
 
-    const [isOpen, setIsOpen] = useState(false);
-    const [scrollHidden, setScrollHidden] = useState(false);
 
     useGSAP(
         () => {
-            gsap.set(navRef.current, { xPercent: 100 });
-            gsap.set([linksRef.current, contactRef.current], {
-                autoAlpha: 0,
-                x: -20,
+
+            const textSplit = SplitText.create(".text", {
+                type: "line words",
+                mask: "words",
+                autoSplit: true
             });
 
-            navTl.current = gsap
+            gsap.set(textSplit.words, {
+                yPercent: 100,
+            });
+            gsap.set(".menu", {
+                yPercent: -100,
+            });
+
+            scrollTriggerRef.current = ScrollTrigger.create({
+                onUpdate: (self) => {
+                    if (self.scroll() < 10) {
+                        setShowNavbar(true);
+                        return;
+                    }
+                    setShowNavbar(self.direction !== 1);
+                },
+            });
+
+            menuTl.current = gsap
                 .timeline({ paused: true })
-                .to(navRef.current, {
-                    xPercent: 0,
-                    duration: 1,
-                    ease: "power3.out",
+                .to(".menu", {
+                    yPercent: 0,
+                    duration: 0.5,
+                    ease: "power1.inOut",
                 })
-                .to(
-                    linksRef.current,
-                    {
-                        autoAlpha: 1,
-                        x: 0,
-                        duration: 0.5,
-                        stagger: 0.1,
-                        ease: "power2.out",
-                    },
-                    "<"
-                )
-                .to(
-                    contactRef.current,
-                    {
-                        autoAlpha: 1,
-                        x: 0,
-                        duration: 0.5,
-                        ease: "power2.out",
-                    },
-                    "<+0.2"
-                );
+                .to(textSplit.words, {
+                    yPercent: 0,
+                    ease: "power1.inOut",
+                    stagger: 0.12
+                }, "<+0.4");
 
             iconTl.current = gsap
                 .timeline({ paused: true })
@@ -83,140 +84,80 @@ const Navbar = () => {
                     "<"
                 );
 
-            ScrollTrigger.create({
-                start: "top top",
-                end: "max",
-                onUpdate: (self) => {
-                    if (self.scroll() < 10) { setScrollHidden(false); return; }
-                    setScrollHidden(self.direction === 1);
-                },
-            });
+            return () => {
+                scrollTriggerRef.current?.kill?.();
+            };
+
+
+
         },
         { scope: containerRef }
     );
 
-    const toggleMenu = () => {
-        if (!navTl.current || !iconTl.current) return;
+    const troggle = () => {
+        if (!menuTl.current) return;
 
-        if (isOpen) {
-            navTl.current.reverse();
-            iconTl.current.reverse();
-        } else {
-            navTl.current.play();
-            iconTl.current.play();
-        }
-        setIsOpen((prev) => !prev);
-    };
-
-
-    useEffect(() => {
-        if (!isOpen) return;
-
-        const handlePointerDown = (event: PointerEvent) => {
-            const target = event.target as Node;
-            if (navRef.current?.contains(target)) return;
-            if (navWrapperRef.current?.contains(target)) return;
-
-            navTl.current?.reverse();
+        if (showMenu) {
+            menuTl.current.reverse();
             iconTl.current?.reverse();
-            setIsOpen(false);
-        };
+            scrollTriggerRef.current?.enable?.();
+        } else {
+            menuTl.current.play();
+            iconTl.current?.play();
+            scrollTriggerRef.current?.disable?.();
+        }
+        setShowMenu((prev) => !prev);
+    }
 
-        document.addEventListener("pointerdown", handlePointerDown);
-        return () => document.removeEventListener("pointerdown", handlePointerDown);
-    }, [isOpen]);
-
-
-    const showBurger = isOpen || !scrollHidden;
-    const clipPath = showBurger
+    const clipPath = showMenu || showNavbar
         ? "circle(100% at 50% 50%)"
         : "circle(0% at 50% 50%)";
 
+
+
     return (
-        <div ref={containerRef}>
-            <nav
-                ref={navRef}
-                className="fixed z-50 flex flex-col justify-between w-full h-full px-6 md:px-10 uppercase bg-black text-white/80 py-28 gap-y-10 md:w-1/2 md:left-1/2"
-            >
-                <div className="flex flex-col text-4xl gap-y-2 md:text-5xl">
-                    {NAV_SECTIONS.map((section, index) => (
-                        <div
-                            key={section}
-                            ref={(el) => {
-                                linksRef.current[index] = el;
-                            }}
-                        >
-                            <Link
-                                href={`/${section}`}
-                                className="transition-all duration-700 cursor-pointer hover:text-white hover:tracking-[0.5rem] ease-in-out"
-                            >
-                                {section}
-                            </Link>
-                        </div>
-                    ))}
-                </div>
-
+        <div ref={containerRef} className="relative">
+            {/* Fixed One Which will be call the trigers on scroll and show the menu */}
+            <div className={`w-full fixed z-50 flex flex-row gap-5 justify-between px-4 md:px-10 pt-4 ${showMenu || showNavbar ? "" : "pointer-events-none"}`}>
                 <div
-                    ref={contactRef}
-                    className="flex flex-col flex-wrap justify-between gap-8 md:flex-row"
-                >
-                    <div className="font-light">
-                        <p className="tracking-wider text-white/50">E-mail</p>
-                        <p className="text-xl tracking-widest lowercase text-pretty">
-                            dev.approxcoding@gmail.com
-                        </p>
-                    </div>
-
-                    <div className="font-light">
-                        <p className="tracking-wider text-white/50">Social Media</p>
-                        <div className="flex flex-wrap gap-x-3">
-                            {socials.map((social) => (
-                                <a
-                                    key={social.name}
-                                    href={social.href}
-                                    className="text-sm leading-loose tracking-widest uppercase hover:text-white transition-colors duration-300"
-                                >
-                                    {`[${social.name}]`}
-                                </a>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            </nav>
-
-            <div
-                ref={navWrapperRef}
-                className={`w-full fixed z-50 flex flex-row gap-5 justify-between px-4 md:px-10 pt-4 ${!showBurger && "pointer-events-none"} }`}            >
-                <div
-                    className="h-10 md:h-14 transition-[clip-path] duration-500 ease-in-out"
+                    className="transition-[clip-path] duration-500 ease-in-out"
                     style={{ clipPath }}
                 >
                     <Image
-                        width={1000}
-                        height={1000}
                         src="/assets/logo.png"
-                        alt="Logo"
-                        className="h-full w-auto"
+                        alt="logo"
+                        className="size-10 sm:size-12 lg:size-14"
+                        width={100}
+                        height={100}
+                        quality={100}
+                        fetchPriority="high"
+                        priority
                     />
                 </div>
 
-                <button
-                    type="button"
-                    aria-label={isOpen ? "Close menu" : "Open menu"}
-                    aria-expanded={isOpen}
-                    onClick={toggleMenu}
-                    className="flex flex-col items-center justify-center gap-1 transition-[clip-path] duration-500 ease-in-out bg-black rounded-full cursor-pointer w-10 h-10 md:w-14 md:h-14"
+                <div
+                    onClick={troggle}
+                    className="flex flex-col justify-center items-center gap-1.5 bg-[#000202] size-9 sm:size-10 lg:size-12 rounded-full cursor-pointer transition-[clip-path] duration-500 ease-in-out"
                     style={{ clipPath }}
                 >
-                    <span
-                        ref={topLineRef}
-                        className="block w-6 md:w-8 h-0.5 bg-white rounded-full origin-center"
-                    />
-                    <span
-                        ref={bottomLineRef}
-                        className="block w-6 md:w-8 h-0.5 bg-white rounded-full origin-center"
-                    />
-                </button>
+                    <span ref={topLineRef} className="bg-white w-6 sm:w-7 lg:w-8 h-0.5 rounded-full origin-center"></span>
+                    <span ref={bottomLineRef}
+                        className="bg-white w-6 sm:w-7 lg:w-8 h-0.5 rounded-full origin-center"></span>
+                </div>
+            </div>
+
+            <div className="menu h-screen fixed top-0 left-0 w-full bg-[#BCF93C] -z-50">
+                <div className=" mt-[calc(100vh-90vh)] w-[90%] mx-auto">
+                    <div className="w-[90%] ml-auto flex flex-col space-y-3 sm:space-y-4 lg:space-y-5">
+                        {
+                            NAV_SECTIONS.map((section, index) => (
+                                <Link onClick={troggle} href={`/#${section}`} key={index} className="w-fit text text-3xl sm:text-4xl lg:text-5xl xl:text-6xl uppercase transition-all duration-700 cursor-pointer hover:tracking-[0.5rem] font-medium ease-in-out">
+                                    {section}
+                                </Link>
+                            ))
+                        }
+                    </div>
+                </div>
             </div>
         </div>
     );
